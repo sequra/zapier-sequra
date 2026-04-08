@@ -1,0 +1,11 @@
+.env
+.history
+.vscode
+.DS_Store
+.claude
+.sfdx
+CLAUDE.md
+node_modules/
+dist/
+build/
+*.tmp

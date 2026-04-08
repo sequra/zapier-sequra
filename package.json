@@ -1,0 +1,17 @@
+{
+  "name": "sequra",
+  "version": "1.0.0",
+  "description": "seQura is an integration that lets merchants create seQura payments and send checkout forms to shoppers directly from Zapier workflows.",
+  "main": "index.js",
+  "scripts": {
+    "start": "jest",
+    "test": "jest"
+  },
+  "dependencies": {
+    "zapier-platform-core": "18.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}

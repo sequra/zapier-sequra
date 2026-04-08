@@ -1,33 +1,70 @@
-# Base repository template
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# seQura (Private Zapier App)
 
-Things you may want to cover:
+Private Zapier integration that lets merchants create seQura payments and send checkout forms to shoppers directly from Zapier workflows.
 
-## 📖 Overview 📖
-> An overview on the whole system or link(s) to the docs explaining it.
+## Install
 
-### ⚙️ Components summary ⚙️
-> Main components for this service or links to the docs explaining them.
+```bash
+npm install
+npm install -g zapier-platform-cli
+zapier login
+zapier register "sequra"
+zapier push
+```
 
-### 📊 Observability and dashboards 📊
-> Links to the Grafana business and tech related dashboards.
+## Authentication
 
-### 🔌 System dependencies 🔌
-> DB engine, cache tooling, job queues, cache servers, search engines, etc.
+When connecting the app in Zapier, you will be asked for:
 
-## 👩‍💻 Development environment instructions 👩‍💻
-> How to get your local environment ready to start working.
+| Field | Description |
+|-------|-------------|
+| Environment | Select one of: Live seQura, Live SVEA, Sandbox seQura, Sandbox SVEA |
+| Account Key | Basic Auth username (also used as Merchant ID) |
+| Account Secret | Basic Auth password |
 
-### 🚧 How to run the test suite 🚧
-> How to run the tests
+Credentials can be found in [your seQura dashboard](https://portal.sequra.com/).
 
-## 🚀 Deployment instructions 🚀
-> How to deploy your service in sandbox or production
+## Actions
 
-## URLs list
-| What     | Production | Sandbox | Development |
-|----------|------------|---------|-------------|
-| app home |            |         |             |
-| sidekiq  |            |         |             |
-| ...      |            |         |             |
+### 1. Create Payment
+
+Creates a seQura payment and optionally sends a checkout link to the shopper via SMS or email.
+
+**Inputs:**
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| Channel | Yes | `SMS`, `Email`, or `None` (creates payment without sending) |
+| Reference | No | Unique payment reference |
+| Shopper Email | Yes | |
+| Shopper Phone | If SMS | Required when channel is `sms` |
+| Shopper Given Names | No | |
+| Shopper Surnames | No | |
+| Total Amount (cents) | Yes | Integer, e.g. 12345 = 123.45 EUR |
+| Currency | No | Defaults to `EUR` |
+| Payment Method / Product | No | Dynamically fetched from your account. Defaults to `tbs` |
+| Item Names | No | List field — add one entry per line item. Use the + button to add more |
+| Item Quantities | No | Quantity for each item (same order as names). Defaults to 1 |
+| Item Unit Prices (cents) | No | Unit price in cents for each item (same order as names) |
+| Notification URL | No | Webhook URL for IPN callbacks |
+| Test Mode | No | Defaults to `false` |
+
+**Outputs:**
+
+| Field | Description |
+|-------|-------------|
+| uuid | Unique identifier for the payment |
+| payment_url | Full URL of the created payment |
+| payment_link | Embedded form URL (`{base_url}/orders/{uuid}/embedded_form?product=tbs`) |
+
+## Recommended Zap designs
+
+**A) Send checkout form to shopper**
+1. Trigger: CRM deal closed (HubSpot, etc.)
+2. Create Payment (with notification URL pointing to a Zapier Catch Hook)
+3. Log payment link and UUID back to CRM
+
+**B) Handle payment confirmation (IPN)**
+1. Trigger: Webhooks by Zapier (Catch Hook) - receives IPN callback
+2. Filter/Paths based on payment status
+3. Update CRM record to "Paid"
