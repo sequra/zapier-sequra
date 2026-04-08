@@ -1,15 +1,15 @@
-# seQura (Private Zapier App)
+# seQura (Zapier Integration)
 
-Private Zapier integration that lets merchants create seQura payments and send checkout forms to shoppers directly from Zapier workflows.
+Zapier integration that lets merchants create seQura payments and send checkout forms to shoppers directly from Zapier workflows.
 
 ## Install
 
 ```bash
 npm install
 npm install -g zapier-platform-cli
-zapier login
-zapier register "sequra"
-zapier push
+zapier-platform login
+zapier-platform register "sequra"
+zapier-platform push
 ```
 
 ## Authentication
@@ -57,7 +57,7 @@ Creates a seQura payment and optionally sends a checkout link to the shopper via
 | payment_url | Full URL of the created payment |
 | payment_link | Embedded form URL (`{base_url}/orders/{uuid}/embedded_form?product=tbs`) |
 
-## Recommended Zap designs
+## Example Zap designs
 
 **A) Send checkout form to shopper**
 1. Trigger: CRM deal closed (HubSpot, etc.)
