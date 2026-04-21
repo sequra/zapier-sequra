@@ -37,18 +37,40 @@ describe('create_payment', () => {
     expect(result.payment_url).toBe('https://middleware.example.com/api/workflow_payments/v1/payments/abc-123');
     expect(z.request).toHaveBeenCalledWith(expect.objectContaining({
       method: 'POST',
-      url: 'https://partner-integration-middleware.sequra.com/api/workflow_payments/v1/payments'
+      url: 'https://partner-integration-middleware-sandbox.sequra.com/api/workflow_payments/v1/payments'
     }));
   });
 
-  test('applies default values for currency, product, and test_mode', async () => {
+  test('applies default values for currency and product', async () => {
     const z = makeZ({ locationHeader: 'https://middleware.example.com/api/.../payments/uuid-1' });
     await perform(z, makeBundle());
 
     const body = JSON.parse(z.request.mock.calls[0][0].body);
     expect(body.currency).toBe('EUR');
     expect(body.product).toBe('tbs');
-    expect(body.test_mode).toBe(false);
+    expect(body.test_mode).toBeUndefined();
+  });
+
+  test('uses live middleware URL when base_url is live', async () => {
+    const z = makeZ({ locationHeader: 'https://middleware.example.com/payments/uuid-live' });
+    const bundle = makeBundle();
+    bundle.authData.base_url = 'https://live.sequrapi.com';
+    await perform(z, bundle);
+
+    expect(z.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://partner-integration-middleware.sequra.com/api/workflow_payments/v1/payments'
+    }));
+  });
+
+  test('uses sandbox middleware URL when base_url is sandbox', async () => {
+    const z = makeZ({ locationHeader: 'https://middleware.example.com/payments/uuid-sbx' });
+    const bundle = makeBundle();
+    bundle.authData.base_url = 'https://sandbox.sequra.svea.com';
+    await perform(z, bundle);
+
+    expect(z.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://partner-integration-middleware-sandbox.sequra.com/api/workflow_payments/v1/payments'
+    }));
   });
 
   test('throws when channel is sms and phone is missing', async () => {

@@ -23,7 +23,7 @@ const fetchProductChoices = async (z, bundle) => {
 const perform = async (z, bundle) => {
   const { channel, reference, email, phone, given_names, surnames,
     item_names, item_quantities, item_unit_prices,
-    total_amount, currency, product, notification_url, test_mode } = bundle.inputData;
+    total_amount, currency, product, notification_url } = bundle.inputData;
 
   // Client-side validation
   if (!EMAIL_RE.test(email)) {
@@ -46,7 +46,6 @@ const perform = async (z, bundle) => {
 
   const body = {
     channel,
-    test_mode: test_mode === true || test_mode === 'true',
     ...(reference && { reference }),
     email,
     ...(phone && { phone }),
@@ -59,7 +58,15 @@ const perform = async (z, bundle) => {
     ...(notification_url && { notification_url })
   };
 
-  const url = 'https://partner-integration-middleware.sequra.com/api/workflow_payments/v1/payments';
+  const { base_url } = bundle.authData;
+  let url;
+  if (base_url.startsWith('https://live.')) {
+    url = 'https://partner-integration-middleware.sequra.com/api/workflow_payments/v1/payments';
+  } else if (base_url.startsWith('https://sandbox.')) {
+    url = 'https://partner-integration-middleware-sandbox.sequra.com/api/workflow_payments/v1/payments';
+  } else {
+    throw new z.errors.Error('Invalid environment URL. Please select a valid seQura environment.');
+  }
 
   const res = await z.request({
     method: 'POST',
@@ -180,13 +187,6 @@ module.exports = {
         label: 'Notification URL',
         required: false,
         helpText: 'Webhook URL to receive IPN callbacks from seQura.'
-      },
-      {
-        key: 'test_mode',
-        label: 'Test Mode',
-        required: false,
-        type: 'boolean',
-        default: 'false'
       }
     ],
     perform,
